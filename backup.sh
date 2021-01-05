@@ -83,14 +83,14 @@ for DB in ${POSTGRES_DBS}; do
     MFILENEW="${MFILE}-new"
     rm -rf "${WFILENEW}" "${MFILENEW}"
     mkdir "${WFILENEW}" "${MFILENEW}"
-    ln -f "${DFILE}/"* "${WFILENEW}/"
-    ln -f "${DFILE}/"* "${MFILENEW}/"
+    cp "${DFILE}/"* "${WFILENEW}/"
+    cp "${DFILE}/"* "${MFILENEW}/"
     rm -rf "${WFILE}" "${MFILE}"
     mv -v "${WFILENEW}" "${WFILE}"
     mv -v "${MFILENEW}" "${MFILE}"
   else
-    ln -vf "${DFILE}" "${WFILE}"
-    ln -vf "${DFILE}" "${MFILE}"
+    cp "${DFILE}" "${WFILE}"
+    cp "${DFILE}" "${MFILE}"
   fi
   #Clean old files
   echo "Cleaning older than ${KEEP_DAYS} days for ${DB} database from ${POSTGRES_HOST}..."
