@@ -2,8 +2,8 @@ ARG BASETAG=alpine
 FROM postgres:$BASETAG
 
 ARG GOCRONVER=v0.0.10
-ARG TARGETOS
-ARG TARGETARCH
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
 RUN set -x \
 	&& apk update && apk add ca-certificates curl \
 	&& curl -L https://github.com/prodrigestivill/go-cron/releases/download/$GOCRONVER/go-cron-$TARGETOS-$TARGETARCH-static.gz | zcat > /usr/local/bin/go-cron \
