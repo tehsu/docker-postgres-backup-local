@@ -1,14 +1,13 @@
 ARG BASETAG=alpine
 FROM postgres:$BASETAG
 
-ARG GOCRONVER=v0.0.9
+ARG GOCRONVER=v0.0.10
 ARG TARGETOS
 ARG TARGETARCH
 RUN set -x \
 	&& apk update && apk add ca-certificates curl \
 	&& curl -L https://github.com/prodrigestivill/go-cron/releases/download/$GOCRONVER/go-cron-$TARGETOS-$TARGETARCH-static.gz | zcat > /usr/local/bin/go-cron \
-	&& chmod a+x /usr/local/bin/go-cron \
-	&& apk del ca-certificates
+	&& chmod a+x /usr/local/bin/go-cron
 
 ENV POSTGRES_DB="**None**" \
     POSTGRES_DB_FILE="**None**" \
@@ -19,7 +18,7 @@ ENV POSTGRES_DB="**None**" \
     POSTGRES_PASSWORD="**None**" \
     POSTGRES_PASSWORD_FILE="**None**" \
     POSTGRES_PASSFILE_STORE="**None**" \
-    POSTGRES_EXTRA_OPTS="-Z9" \
+    POSTGRES_EXTRA_OPTS="-Z6" \
     POSTGRES_CLUSTER="FALSE" \
     SCHEDULE="@daily" \
     BACKUP_DIR="/backups" \

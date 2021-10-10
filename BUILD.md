@@ -14,7 +14,7 @@ In order to work in Arch Linux the following initialization commands will be req
 ```sh
 docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 docker buildx rm multibuilder
-docker buildx create --name multibuilder --platform linux/amd64,linux/arm64,linux/arm/v7 --driver docker-container --use
+docker buildx create --name multibuilder --platform linux/amd64,linux/arm64,linux/arm/v7,linux/s390x,linux/ppc64le --driver docker-container --use
 docker buildx inspect --bootstrap
 ```
 
@@ -39,5 +39,11 @@ docker buildx bake --pull -f config.hcl
 In order to publish directly to the repository run this command instead:
 
 ```sh
-docker buildx bake --pull --set common.output=type=registry -f config.hcl
+docker buildx bake --pull --push -f config.hcl
+```
+
+Also, optionally, it can also generate build revision tags from last git commit (like `./publish.sh` script does):
+
+```sh
+BUILDREV=$(git rev-parse --short HEAD) docker buildx bake --pull --push -f config.hcl
 ```

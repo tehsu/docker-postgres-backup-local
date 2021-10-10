@@ -5,7 +5,7 @@
 Backup PostgresSQL to the local filesystem with periodic rotating backups, based on [schickling/postgres-backup-s3](https://hub.docker.com/r/schickling/postgres-backup-s3/).
 Backup multiple databases from the same host by setting the database names in `POSTGRES_DB` separated by commas or spaces.
 
-Supports the following Docker architectures: `linux/amd64`, `linux/arm64`, `linux/arm/v7`.
+Supports the following Docker architectures: `linux/amd64`, `linux/arm64`, `linux/arm/v7`, `linux/s390x`, `linux/ppc64le`.
 
 ## Usage
 
@@ -31,7 +31,7 @@ services:
     pgbackups:
         image: prodrigestivill/postgres-backup-local
         restart: always
-        user: postgres:postgres
+        user: postgres:postgres # Optional: see below
         volumes:
             - /var/opt/pgbackups:/backups
         links:
@@ -44,7 +44,7 @@ services:
             - POSTGRES_USER=username
             - POSTGRES_PASSWORD=password
          #  - POSTGRES_PASSWORD_FILE=/run/secrets/db_password <-- alternative for POSTGRES_PASSWORD (to use with docker secrets)
-            - POSTGRES_EXTRA_OPTS=-Z9 --schema=public --blobs
+            - POSTGRES_EXTRA_OPTS=-Z6 --schema=public --blobs
             - SCHEDULE=@daily
             - BACKUP_KEEP_DAYS=7
             - BACKUP_KEEP_WEEKS=4
@@ -76,16 +76,17 @@ Most variables are the same as in the [official postgres image](https://hub.dock
 | HEALTHCHECK_PORT | Port listening for cron-schedule health check. Defaults to `8080`. |
 | POSTGRES_DB | Comma or space separated list of postgres databases to backup. Required. |
 | POSTGRES_DB_FILE | Alternative to POSTGRES_DB, but with one database per line, for usage with docker secrets. |
-| POSTGRES_EXTRA_OPTS | Additional options for `pg_dump`. Defaults to `-Z9`. |
+| POSTGRES_EXTRA_OPTS | Additional [options](https://www.postgresql.org/docs/12/app-pgdump.html#PG-DUMP-OPTIONS) for `pg_dump` (or `pg_dumpall` [options](https://www.postgresql.org/docs/12/app-pg-dumpall.html#id-1.9.4.13.6) if POSTGRES_CLUSTER is set). Defaults to `-Z6`. |
 | POSTGRES_CLUSTER | Set to `TRUE` in order to use `pg_dumpall` instead. Also set POSTGRES_EXTRA_OPTS to any value or empty since the default value is not compatible with `pg_dumpall`. |
 | POSTGRES_HOST | Postgres connection parameter; postgres host to connect to. Required. |
 | POSTGRES_PASSWORD | Postgres connection parameter; postgres password to connect with. Required. |
 | POSTGRES_PASSWORD_FILE | Alternative to POSTGRES_PASSWORD, for usage with docker secrets. |
-| POSTGRES_PASSFILE_STORE | Alternative to POSTGRES_PASSWORD in [passfile format](https://www.postgresql.org/docs/12/libpq-pgpass.html), for usage with postgres clusters. |
+| POSTGRES_PASSFILE_STORE | Alternative to POSTGRES_PASSWORD in [passfile format](https://www.postgresql.org/docs/12/libpq-pgpass.html#LIBPQ-PGPASS), for usage with postgres clusters. |
 | POSTGRES_PORT | Postgres connection parameter; postgres port to connect to. Defaults to `5432`. |
 | POSTGRES_USER | Postgres connection parameter; postgres user to connect with. Required. |
 | POSTGRES_USER_FILE | Alternative to POSTGRES_USER, for usage with docker secrets. |
 | SCHEDULE | [Cron-schedule](http://godoc.org/github.com/robfig/cron#hdr-Predefined_schedules) specifying the interval between postgres backups. Defaults to `@daily`. |
+| TZ | [POSIX TZ variable](https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html) specifying the timezone used to evaluate SCHEDULE cron (example "Europe/Paris"). |
 
 #### Special Environment Variables
 
@@ -128,8 +129,8 @@ zcat backupfile.sql.gz | docker exec --tty --interactive $CONTAINER psql --usern
 
 ### Restore to a remote server
 
-Replace the backupfile name, `$VERSION`, `$HOSTNAME`, `$PORT`, `$USERNAME` and `$DBNAME` from the following command:
+Replace `$BACKUPFILE`, `$VERSION`, `$HOSTNAME`, `$PORT`, `$USERNAME` and `$DBNAME` from the following command:
 
 ```sh
-zcat backupfile.sql.gz | docker run --rm --tty --interactive postgres:$VERSION psql --host=$HOSTNAME --port=$PORT --username=$USERNAME --dbname=$DBNAME -W
+docker run --rm --tty --interactive -v $BACKUPFILE:/tmp/backupfile.sql.gz postgres:$VERSION /bin/sh -c "zcat /tmp/backupfile.sql.gz | psql --host=$HOSTNAME --port=$PORT --username=$USERNAME --dbname=$DBNAME -W"
 ```
